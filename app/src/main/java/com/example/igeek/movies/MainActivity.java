@@ -24,7 +24,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
 
-    List<String> moviesList;
+    ArrayList<Movies> moviesList;
     GridView gv;
     ImageView imageView;
 
@@ -89,11 +89,11 @@ public class MainActivity extends AppCompatActivity {
 
         //For this class, we will need a context and of course an ArrayList of data!
         private Context context;
-        ArrayList<String> images;
+        ArrayList<Movies> images;
 
         //Here is our constructor that initially sets our context and our data to the information that we 
         //pass in when setting our adapter to our gridview 
-        public GridAdapter(Context context,ArrayList<String> images){
+        public GridAdapter(Context context,ArrayList<Movies> images){
             this.context = context;
             this.images = images;
         }

@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         gv = (GridView)findViewById(R.id.gridView);
-        //imageView = (ImageView)findViewById(R.id.grid_item_image);
+       
     }
 
     @Override
@@ -62,19 +62,10 @@ public class MainActivity extends AppCompatActivity {
         task.execute(url);
     }
 
-    public void updateDisplay(){
-
-
-        if(moviesList != null){
-
-            for(String movie : moviesList){
-//
-            }
-        }
-    }
-
+    //Here is our Async Task sub class that will send the url to our HTTPManager Class and then send the 
+    //retreived data to the MoviesJSONParse class which will then give us back the ArrayList<Movies> that we need 
+    //for our Adapter!
     public class FetchData extends AsyncTask<String, String, String>{
-
 
         @Override
         protected String doInBackground(String... params) {
@@ -84,23 +75,27 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             moviesList = MoviesJSONParse.parseFeed(s);
-            //updateDisplay();
-            gv.setAdapter(new GridAdapter(MainActivity.this, MoviesJSONParse.urlStr));
+            
+            //Remeber to set the Adapter! I always forget!
+            gv.setAdapter(new GridAdapter(MainActivity.this, moviesList));
 
             super.onPostExecute(s);
         }
     }
 
+    //Here is our Adapter that extends BaseAdapter. We will override the methods that we need and 
+    //do the following implementation.
     public class GridAdapter extends BaseAdapter{
 
-
+        //For this class, we will need a context and of course an ArrayList of data!
         private Context context;
         ArrayList<String> images;
 
+        //Here is our constructor that initially sets our context and our data to the information that we 
+        //pass in when setting our adapter to our gridview 
         public GridAdapter(Context context,ArrayList<String> images){
             this.context = context;
             this.images = images;
-            notifyDataSetChanged();
         }
 
         @Override
@@ -121,19 +116,55 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int i, View convertView, ViewGroup viewGroup) {
 
-            View view = null;
-
-            if(convertView == null){
-                LayoutInflater inflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
+            if (convertView == null) {
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.grid_item_layout, viewGroup, false);
-                imageView = (ImageView)convertView.findViewById(R.id.grid_item_image);
-            }else{
-                imageView = (ImageView)convertView;
+                imageView = (ImageView) convertView.findViewById(R.id.grid_item_image);
+            } else {
+                imageView = (ImageView) convertView;
             }
+
+            //Make another instance of our Movies class and set it equal to the current movie by grabbing the position
+            Movies movie = (Movies) this.getItem(i);
+            
+            //Set temporary properties for all the details that you will want to use
+            final String title = movie.getTitle();
+            final String releaseD = movie.getRelease_date();
+            final String overview = movie.getOverview();
+            final int votes = movie.getVote_count();
+            final String poster = movie.getPoster_path();
+            
+            //I also use Picasso for simple image loading :)
             Picasso.with(context)
-                    .load(images.get(i))
+                    .load(poster)
                     .into(imageView);
+
+            //Here is where we handle what happens when a Movie is clicked
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //We will call a custom method that will need certain parameters,
+                    //it will need these parameters because they'll be sent to the next activity
+                    //So all I did was pass in the variables I created above
+                    goToDetails(votes, releaseD, overview, title, poster);
+                }
+            });
             return convertView;
+        }
+
+        //Here is the custom method that will create an intent and attach extra data to it that will 
+        //also be sent to the next activity.
+        private void goToDetails(int vote, String... params) {
+
+            Intent i = new Intent(context, Details.class);
+            //Make sure you remeber the keyword that you assign to each "Extra"
+            i.putExtra("VOTE", vote);
+            i.putExtra("RELEASE", params[0]);
+            i.putExtra("OVERVIEW", params[1]);
+            i.putExtra("TITLE", params[2]);
+            i.putExtra("POSTER", params[3]);
+
+            context.startActivity(i);
         }
     }
 }
